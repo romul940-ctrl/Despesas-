@@ -1,751 +1,560 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Painel Financeiro Mensal</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  * { box-sizing: border-box; font-family: system-ui, sans-serif; }
-  body { margin: 0; background: #0f172a; color: #e2e8f0; padding: 20px; }
-  h1 { font-size: 1.6rem; margin-bottom: 20px; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-  .card { background: #1e293b; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
-  .card h2 { font-size: 1.1rem; margin-top: 0; color: #94a3b8; }
-
-  .cards-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; margin-bottom: 20px; }
-  .resumo { background: #1e293b; border-radius: 12px; padding: 18px; border-left: 4px solid #38bdf8; }
-  .resumo.positivo { border-color: #22c55e; }
-  .resumo.negativo { border-color: #ef4444; }
-  .resumo.aviso    { border-color: #f59e0b; }
-  .resumo span { display:block; font-size: .8rem; color:#94a3b8; }
-  .resumo strong { font-size: 1.5rem; }
-  .resumo small { display:block; font-size:.75rem; color:#64748b; margin-top:4px; }
-
-  input, select, button {
-    width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px;
-    border: 1px solid #334155; background: #0f172a; color: #e2e8f0; font-size: .95rem;
-  }
-  button { background: #38bdf8; color: #0f172a; font-weight: 600; cursor: pointer; border: none; }
-  button:hover { background: #0ea5e9; }
-  button.remover { background: #ef4444; color: white; width: auto; padding: 4px 10px; font-size: .8rem; }
-  button.remover:hover { background: #dc2626; }
-
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .9rem; }
-  th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid #334155; }
-  th { color: #94a3b8; font-weight: 500; font-size: .8rem; }
-
-  .linha-form {
-    display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr auto;
-    gap: 8px; align-items: center;
-  }
-  @media (max-width: 900px) { .linha-form { grid-template-columns: 1fr 1fr; } }
-
-  .abas { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #1e293b; flex-wrap: wrap; }
-  .aba {
-    padding: 12px 22px; cursor: pointer; background: transparent; color: #94a3b8;
-    border: none; border-bottom: 3px solid transparent; font-size: 1rem;
-    font-weight: 600; width: auto; margin: 0; border-radius: 0;
-  }
-  .aba:hover { color: #e2e8f0; }
-  .aba.ativa { color: #38bdf8; border-bottom-color: #38bdf8; background: transparent; }
-  .painel { display: none; }
-  .painel.ativo { display: block; }
-
-  .badge {
-    display: inline-block; padding: 3px 10px; border-radius: 999px;
-    font-size: .78rem; font-weight: 600;
-  }
-  optgroup { background: #0f172a; color: #94a3b8; font-style: normal; }
-
-  .alerta {
-    padding: 12px 16px; border-radius: 10px; margin-bottom: 15px;
-    font-size: .9rem; border-left: 4px solid;
-  }
-  .alerta.ok    { background: #052e16; border-color: #22c55e; color: #bbf7d0; }
-  .alerta.aviso { background: #451a03; border-color: #f59e0b; color: #fde68a; }
-  .alerta.erro  { background: #450a0a; border-color: #ef4444; color: #fecaca; }
-
-  .tipo-tag {
-    display:inline-block; padding:2px 8px; border-radius:6px;
-    font-size:.72rem; font-weight:700; letter-spacing:.02em;
-  }
-  .tipo-tag.rec  { background:#a855f733; color:#d8b4fe; }
-  .tipo-tag.esp  { background:#f59e0b33; color:#fcd34d; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel Financeiro Mensal - Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { margin: 0; background: #0f172a; color: #e2e8f0; padding: 20px; }
+        h1 { font-size: 1.6rem; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+        .card h2 { font-size: 1.1rem; margin-top: 0; color: #94a3b8; }
+        .cards-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 15px; margin-bottom: 20px; }
+        .resumo { background: #1e293b; border-radius: 12px; padding: 18px; border-left: 4px solid #38bdf8; }
+        .resumo.positivo { border-color: #22c55e; }
+        .resumo.negativo { border-color: #ef4444; }
+        .resumo.aviso    { border-color: #f59e0b; }
+        .resumo span { display:block; font-size: .8rem; color:#94a3b8; }
+        .resumo strong { font-size: 1.5rem; }
+        .resumo small { display:block; font-size:.75rem; color:#64748b; margin-top:4px; }
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; font-size: .95rem; }
+        button { background: #38bdf8; color: #0f172a; font-weight: 600; cursor: pointer; border: none; }
+        button:hover { background: #0ea5e9; }
+        button.remover { background: #ef4444; color: white; width: auto; padding: 4px 10px; font-size: .8rem; }
+        button.remover:hover { background: #dc2626; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .9rem; }
+        th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 500; font-size: .8rem; }
+        .linha-form { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr auto; gap: 8px; align-items: center; }
+        @media (max-width: 900px) { .linha-form { grid-template-columns: 1fr 1fr; } }
+        .abas { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #1e293b; flex-wrap: wrap; }
+        .aba { padding: 12px 22px; cursor: pointer; background: transparent; color: #94a3b8; border: none; border-bottom: 3px solid transparent; font-size: 1rem; font-weight: 600; width: auto; margin: 0; border-radius: 0; }
+        .aba:hover { color: #e2e8f0; }
+        .aba.ativa { color: #38bdf8; border-bottom-color: #38bdf8; background: transparent; }
+        .painel { display: none; }
+        .painel.ativo { display: block; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
+        optgroup { background: #0f172a; color: #94a3b8; font-style: normal; }
+        .alerta { padding: 12px 16px; border-radius: 10px; margin-bottom: 15px; font-size: .9rem; border-left: 4px solid; }
+        .alerta.ok    { background: #052e16; border-color: #22c55e; color: #bbf7d0; }
+        .alerta.aviso { background: #451a03; border-color: #f59e0b; color: #fde68a; }
+        .alerta.erro  { background: #450a0a; border-color: #ef4444; color: #fecaca; }
+        .tipo-tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:.72rem; font-weight:700; letter-spacing:.02em; }
+        .tipo-tag.rec  { background:#a855f733; color:#d8b4fe; }
+        .tipo-tag.esp  { background:#f59e0b33; color:#fcd34d; }
+        .tipo-tag.fixo { background:#38bdf833; color:#7dd3fc; }
+        .auth-container { max-width: 400px; margin: 80px auto; text-align: center; }
+        .auth-container input { margin-bottom: 15px; }
+        .btn-google { background: #fff; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; }
+        .btn-google:hover { background: #f1f5f9; }
+    </style>
 </head>
 <body>
 
-<h1>💰 Painel Financeiro Mensal</h1>
-
-<div class="card" style="margin-bottom:20px">
-  <h2>Renda do Mês</h2>
-  <input type="number" id="renda" placeholder="Ex: 5000" step="0.01">
-</div>
-
-<div class="cards-resumo">
-  <div class="resumo"><span>Gastos Fixos</span><strong id="totalFixos">R$ 0,00</strong></div>
-  <div class="resumo"><span>Gastos Diários</span><strong id="totalVariaveis">R$ 0,00</strong></div>
-  <div class="resumo"><span>Total Gasto</span><strong id="totalGeral">R$ 0,00</strong></div>
-  <div class="resumo" id="cardSaldo"><span>Saldo Líquido</span><strong id="saldo">R$ 0,00</strong></div>
-</div>
-
-<div class="abas">
-  <button class="aba ativa" onclick="trocarAba('fixas', this)">📌 Contas Fixas</button>
-  <button class="aba" onclick="trocarAba('diarios', this)">🛒 Gastos Diários</button>
-  <button class="aba" onclick="trocarAba('graficos', this)">📊 Gráficos</button>
-  <button class="aba" onclick="trocarAba('analise', this)">🔮 Análise</button>
-</div>
-
-<!-- Contas Fixas -->
-<div id="painel-fixas" class="painel ativo">
-  <div class="card">
-    <h2>Contas Fixas Mensais</h2>
-    <div class="linha-form">
-      <input type="text" id="fixoNome" placeholder="Ex: Aluguel">
-      <select id="fixoCategoria"></select>
-      <input type="number" id="fixoValor" placeholder="Valor" step="0.01">
-      <button onclick="addFixo()">Adicionar</button>
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login" class="auth-container card" style="display:none;">
+        <h2>💰 Painel Financeiro</h2>
+        <p style="color:#94a3b8; font-size:.9rem;">Entre para sincronizar seus gastos em qualquer dispositivo.</p>
+        <input type="email" id="email" placeholder="Seu e-mail">
+        <button onclick="fazerLogin()">Entrar com E-mail (Link Mágico)</button>
+        <hr style="border-color:#334155; margin: 20px 0;">
+        <button class="btn-google" onclick="loginComGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Entrar com Google
+        </button>
+        <p id="login-msg" style="color:#f59e0b; font-size:.85rem; margin-top:15px;"></p>
     </div>
-    <table>
-      <thead><tr><th>Conta</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
-      <tbody id="listaFixos"></tbody>
-    </table>
-  </div>
-</div>
 
-<!-- Gastos Diários -->
-<div id="painel-diarios" class="painel">
-  <div class="card">
-    <h2>Gastos por Compras</h2>
-    <div class="linha-form">
-      <input type="text" id="varNome" placeholder="Ex: Mercado">
-      <select id="varCategoria"></select>
-      <select id="varTipo">
-        <option value="recorrente">🔄 Recorrente</option>
-        <option value="esporadico">⚡ Esporádico</option>
-      </select>
-      <input type="number" id="varValor" placeholder="Valor" step="0.01">
-      <input type="date" id="varData">
-      <button onclick="addVar()">Adicionar</button>
+    <!-- CONTEÚDO DO PAINEL (Só aparece após login) -->
+    <div id="conteudo-painel" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="margin:0;">💰 Painel Financeiro</h1>
+            <button onclick="fazerLogout()" style="width:auto; background:#334155; color:#e2e8f0;">Sair</button>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+            <h2>Renda do Mês</h2>
+            <input type="number" id="renda" placeholder="Ex: 5000" step="0.01">
+        </div>
+
+        <div class="cards-resumo">
+            <div class="resumo"><span>Gastos Fixos</span><strong id="totalFixos">R$ 0,00</strong></div>
+            <div class="resumo"><span>Gastos Diários</span><strong id="totalVariaveis">R$ 0,00</strong></div>
+            <div class="resumo"><span>Total Gasto</span><strong id="totalGeral">R$ 0,00</strong></div>
+            <div class="resumo" id="cardSaldo"><span>Saldo Líquido</span><strong id="saldo">R$ 0,00</strong></div>
+        </div>
+
+        <div class="abas">
+            <button class="aba ativa" onclick="trocarAba('fixas', this)">📌 Contas Fixas</button>
+            <button class="aba" onclick="trocarAba('diarios', this)">🛒 Gastos Diários</button>
+            <button class="aba" onclick="trocarAba('graficos', this)">📊 Gráficos</button>
+            <button class="aba" onclick="trocarAba('analise', this)">🔮 Análise</button>
+        </div>
+
+        <div id="painel-fixas" class="painel ativo">
+            <div class="card">
+                <h2>Contas Fixas Mensais</h2>
+                <div class="linha-form">
+                    <input type="text" id="fixoNome" placeholder="Ex: Aluguel">
+                    <select id="fixoCategoria"></select>
+                    <input type="number" id="fixoValor" placeholder="Valor" step="0.01">
+                    <button onclick="addFixo()">Adicionar</button>
+                </div>
+                <table>
+                    <thead><tr><th>Conta</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+                    <tbody id="listaFixos"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="painel-diarios" class="painel">
+            <div class="card">
+                <h2>Gastos por Compras</h2>
+                <div class="linha-form">
+                    <input type="text" id="varNome" placeholder="Ex: Mercado">
+                    <select id="varCategoria"></select>
+                    <select id="varTipo">
+                        <option value="recorrente">🔄 Recorrente</option>
+                        <option value="esporadico">⚡ Esporádico</option>
+                    </select>
+                    <input type="number" id="varValor" placeholder="Valor" step="0.01">
+                    <input type="date" id="varData">
+                    <button onclick="addVar()">Adicionar</button>
+                </div>
+                <table>
+                    <thead><tr><th>Compra</th><th>Categoria</th><th>Tipo</th><th>Data</th><th>Valor</th><th></th></tr></thead>
+                    <tbody id="listaVars"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="painel-graficos" class="painel">
+            <div class="grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📊 Acompanhamento do Gasto no Mês</h2>
+                    <canvas id="graficoLinha" height="90"></canvas>
+                </div>
+                <div class="card">
+                    <h2>🥧 Gastos por Categoria</h2>
+                    <canvas id="graficoPizza" height="200"></canvas>
+                </div>
+                <div class="card">
+                    <h2>📋 Resumo por Categoria</h2>
+                    <table>
+                        <thead><tr><th>Categoria</th><th>Total</th><th>%</th></tr></thead>
+                        <tbody id="tabelaCategorias"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="painel-analise" class="painel">
+            <div id="alertaAnalise"></div>
+            <div class="cards-resumo">
+                <div class="resumo"><span>Média diária (recorrentes)</span><strong id="mediaRec">R$ 0,00</strong><small id="infoRec"></small></div>
+                <div class="resumo"><span>Média diária (esporádicos)</span><strong id="mediaEsp">R$ 0,00</strong><small id="infoEsp"></small></div>
+                <div class="resumo" id="cardProjGasto"><span>Projeção até fim do mês</span><strong id="projecaoGasto">R$ 0,00</strong><small id="detalheProj"></small></div>
+                <div class="resumo" id="cardProjSaldo"><span>Saldo projetado</span><strong id="projecaoSaldo">R$ 0,00</strong><small>Se mantiver o ritmo</small></div>
+                <div class="resumo"><span>Dias restantes</span><strong id="diasRestantes">0</strong><small id="limiteDiario"></small></div>
+            </div>
+            <div class="card" style="margin-bottom:20px">
+                <h2>🔮 Projeção de Despesas Variáveis Recorrentes por Categoria</h2>
+                <table>
+                    <thead><tr><th>Categoria</th><th>Gasto no mês</th><th>Média diária</th><th>Projeção total do mês</th><th>Restante a gastar</th></tr></thead>
+                    <tbody id="tabelaProjCategorias"></tbody>
+                </table>
+            </div>
+            <div class="grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>📅 Gasto Diário no Mês</h2>
+                    <canvas id="graficoBarras" height="90"></canvas>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>🔮 Projeção Acumulada até o Fim do Mês</h2>
+                    <canvas id="graficoProjecao" height="90"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-    <p style="font-size:.82rem;color:#94a3b8;margin-top:10px">
-      <strong>🔄 Recorrente:</strong> gasto que se repete todo mês (mercado, transporte, almoço).
-      &nbsp;&nbsp;<strong>⚡ Esporádico:</strong> compra pontual (presente, eletrônico, imprevisto).
-    </p>
-    <table>
-      <thead>
-        <tr><th>Compra</th><th>Categoria</th><th>Tipo</th><th>Data</th><th>Valor</th><th></th></tr>
-      </thead>
-      <tbody id="listaVars"></tbody>
-    </table>
-  </div>
-</div>
 
-<!-- Gráficos -->
-<div id="painel-graficos" class="painel">
-  <div class="grid">
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>📊 Acompanhamento do Gasto no Mês</h2>
-      <canvas id="graficoLinha" height="90"></canvas>
-    </div>
-    <div class="card">
-      <h2>🥧 Gastos por Categoria</h2>
-      <canvas id="graficoPizza" height="200"></canvas>
-    </div>
-    <div class="card">
-      <h2>📋 Resumo por Categoria</h2>
-      <table>
-        <thead><tr><th>Categoria</th><th>Total</th><th>%</th></tr></thead>
-        <tbody id="tabelaCategorias"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    <script>
+        /* ============================================================
+           1. CONFIGURAÇÃO DO SUPABASE
+           ============================================================ */
+        // SUBSTITUA pelos seus valores do Supabase (Settings > API)
+        const SUPABASE_URL = 'SUA_URL_AQUI'; 
+        const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI';
 
-<!-- Análise -->
-<div id="painel-analise" class="painel">
-  <div id="alertaAnalise"></div>
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <div class="cards-resumo">
-    <div class="resumo">
-      <span>Média diária (recorrentes)</span>
-      <strong id="mediaRec">R$ 0,00</strong>
-      <small id="infoRec"></small>
-    </div>
-    <div class="resumo">
-      <span>Média diária (esporádicos)</span>
-      <strong id="mediaEsp">R$ 0,00</strong>
-      <small id="infoEsp"></small>
-    </div>
-    <div class="resumo" id="cardProjGasto">
-      <span>Projeção até fim do mês</span>
-      <strong id="projecaoGasto">R$ 0,00</strong>
-      <small id="detalheProj"></small>
-    </div>
-    <div class="resumo" id="cardProjSaldo">
-      <span>Saldo projetado</span>
-      <strong id="projecaoSaldo">R$ 0,00</strong>
-      <small>Se mantiver o ritmo</small>
-    </div>
-    <div class="resumo">
-      <span>Dias restantes</span>
-      <strong id="diasRestantes">0</strong>
-      <small id="limiteDiario"></small>
-    </div>
-  </div>
+        /* ============================================================
+           2. CATEGORIAS E ESTADO
+           ============================================================ */
+        const CATEGORIAS = [
+            { id: 'alimentacao',  nome: 'Alimentação',   cor: '#22c55e', icone: '🍎' },
+            { id: 'restaurante',  nome: 'Restaurante',   cor: '#f97316', icone: '🍽️' },
+            { id: 'transporte',   nome: 'Transporte',    cor: '#38bdf8', icone: '🚗' },
+            { id: 'educacao',     nome: 'Educação',      cor: '#a855f7', icone: '📚' },
+            { id: 'saude',        nome: 'Saúde',         cor: '#ef4444', icone: '💊' },
+            { id: 'casa',         nome: 'Casa',          cor: '#eab308', icone: '🏠' },
+            { id: 'lazer',        nome: 'Lazer',         cor: '#ec4899', icone: '🎮' },
+            { id: 'vestuario',    nome: 'Vestuário',     cor: '#14b8a6', icone: '👕' },
+            { id: 'assinaturas',  nome: 'Assinaturas',   cor: '#8b5cf6', icone: '📺' },
+            { id: 'contas',       nome: 'Contas/Utilidades', cor: '#0ea5e9', icone: '💡' },
+            { id: 'outros',       nome: 'Outros',        cor: '#94a3b8', icone: '📦' }
+        ];
+        const CATEGORIAS_RECORRENTES = ['alimentacao', 'transporte', 'restaurante', 'casa'];
+        const SUGESTOES_FIXAS = ['casa', 'contas', 'saude', 'educacao', 'assinaturas', 'transporte'];
+        const catPorId = id => CATEGORIAS.find(c => c.id === id) || CATEGORIAS[CATEGORIAS.length-1];
+        const fmt = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 
-  <!-- Projeção por categoria (recorrentes) -->
-  <div class="card" style="margin-bottom:20px">
-    <h2>🔮 Projeção de Despesas Variáveis Recorrentes por Categoria</h2>
-    <p style="font-size:.85rem;color:#94a3b8;margin-top:0">
-      Categorias como <strong>Alimentação</strong>, <strong>Transporte</strong> e
-      <strong>Restaurante</strong> tendem a se repetir todo mês. Veja a projeção
-      baseada na sua média real de gastos recorrentes.
-    </p>
-    <table>
-      <thead>
-        <tr>
-          <th>Categoria</th>
-          <th>Gasto no mês</th>
-          <th>Média diária</th>
-          <th>Projeção total do mês</th>
-          <th>Restante a gastar</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaProjCategorias"></tbody>
-    </table>
-  </div>
+        let despesas = []; // Array global que guarda os dados do Supabase
+        let renda = 0;
+        let chartLinha, chartPizza, chartBarras, chartProjecao;
 
-  <div class="grid">
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>📅 Gasto Diário no Mês</h2>
-      <canvas id="graficoBarras" height="90"></canvas>
-    </div>
-    <div class="card" style="grid-column: 1 / -1;">
-      <h2>🔮 Projeção Acumulada até o Fim do Mês</h2>
-      <canvas id="graficoProjecao" height="90"></canvas>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ============================================================
-   CATEGORIAS
-   ============================================================ */
-const CATEGORIAS = [
-  { id: 'alimentacao',  nome: 'Alimentação',   cor: '#22c55e', icone: '🍎' },
-  { id: 'restaurante',  nome: 'Restaurante',   cor: '#f97316', icone: '🍽️' },
-  { id: 'transporte',   nome: 'Transporte',    cor: '#38bdf8', icone: '🚗' },
-  { id: 'educacao',     nome: 'Educação',      cor: '#a855f7', icone: '📚' },
-  { id: 'saude',        nome: 'Saúde',         cor: '#ef4444', icone: '💊' },
-  { id: 'casa',         nome: 'Casa',          cor: '#eab308', icone: '🏠' },
-  { id: 'lazer',        nome: 'Lazer',         cor: '#ec4899', icone: '🎮' },
-  { id: 'vestuario',    nome: 'Vestuário',     cor: '#14b8a6', icone: '👕' },
-  { id: 'assinaturas',  nome: 'Assinaturas',   cor: '#8b5cf6', icone: '📺' },
-  { id: 'contas',       nome: 'Contas/Utilidades', cor: '#0ea5e9', icone: '💡' },
-  { id: 'outros',       nome: 'Outros',        cor: '#94a3b8', icone: '📦' }
-];
-
-/* Categorias que costumam ser recorrentes (usadas como sugestão/padrão) */
-const CATEGORIAS_RECORRENTES = ['alimentacao', 'transporte', 'restaurante', 'casa'];
-
-const SUGESTOES_FIXAS = ['casa', 'contas', 'saude', 'educacao', 'assinaturas', 'transporte'];
-const catPorId = id => CATEGORIAS.find(c => c.id === id) || CATEGORIAS[CATEGORIAS.length-1];
-
-/* ============================================================
-   ESTADO
-   ============================================================ */
-const fmt = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-let fixos = JSON.parse(localStorage.getItem('fixos') || '[]');
-let variaveis = JSON.parse(localStorage.getItem('variaveis') || '[]');
-let renda = parseFloat(localStorage.getItem('renda') || 0);
-
-// Compatibilidade: gastos antigos sem "tipo" viram recorrentes se a categoria for típica
-variaveis = variaveis.map(v => ({
-  ...v,
-  tipo: v.tipo || (CATEGORIAS_RECORRENTES.includes(v.categoria) ? 'recorrente' : 'esporadico')
-}));
-
-let chartLinha, chartPizza, chartBarras, chartProjecao;
-
-/* ============================================================
-   NAVEGAÇÃO
-   ============================================================ */
-function trocarAba(nome, btn) {
-  document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
-  document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
-  btn.classList.add('ativa');
-  document.getElementById('painel-' + nome).classList.add('ativo');
-  if (nome === 'graficos') renderGraficos();
-  if (nome === 'analise') renderAnalise();
-}
-
-/* ============================================================
-   CATEGORIAS NOS SELECTS
-   ============================================================ */
-function popularCategorias() {
-  const fixoSel = document.getElementById('fixoCategoria');
-  const sugeridas = CATEGORIAS.filter(c => SUGESTOES_FIXAS.includes(c.id));
-  const outras = CATEGORIAS.filter(c => !SUGESTOES_FIXAS.includes(c.id));
-  fixoSel.innerHTML =
-    `<optgroup label="Sugeridas para contas fixas">` +
-    sugeridas.map(c => `<option value="${c.id}">${c.icone} ${c.nome}</option>`).join('') +
-    `</optgroup><optgroup label="Outras">` +
-    outras.map(c => `<option value="${c.id}">${c.icone} ${c.nome}</option>`).join('') +
-    `</optgroup>`;
-
-  const varSel = document.getElementById('varCategoria');
-  varSel.innerHTML = CATEGORIAS
-    .slice()
-    .sort((a,b) => a.nome.localeCompare(b.nome))
-    .map(c => `<option value="${c.id}">${c.icone} ${c.nome}</option>`)
-    .join('');
-
-  // Ao escolher categoria recorrente típica, sugere tipo "recorrente"
-  varSel.addEventListener('change', () => {
-    const tipoSel = document.getElementById('varTipo');
-    tipoSel.value = CATEGORIAS_RECORRENTES.includes(varSel.value) ? 'recorrente' : 'esporadico';
-  });
-  // Dispara uma vez para já vir com valor coerente
-  varSel.dispatchEvent(new Event('change'));
-}
-
-/* ============================================================
-   ADICIONAR / REMOVER
-   ============================================================ */
-function addFixo() {
-  const nome = document.getElementById('fixoNome').value.trim();
-  const valor = parseFloat(document.getElementById('fixoValor').value);
-  const categoria = document.getElementById('fixoCategoria').value;
-  if (!nome || isNaN(valor)) return;
-  fixos.push({ nome, valor, categoria });
-  document.getElementById('fixoNome').value = '';
-  document.getElementById('fixoValor').value = '';
-  salvar(); render();
-}
-
-function addVar() {
-  const nome = document.getElementById('varNome').value.trim();
-  const valor = parseFloat(document.getElementById('varValor').value);
-  const data = document.getElementById('varData').value || new Date().toISOString().slice(0,10);
-  const categoria = document.getElementById('varCategoria').value;
-  const tipo = document.getElementById('varTipo').value;
-  if (!nome || isNaN(valor)) return;
-  variaveis.push({ nome, valor, data, categoria, tipo });
-  document.getElementById('varNome').value = '';
-  document.getElementById('varValor').value = '';
-  salvar(); render();
-}
-
-function removerFixo(i) { fixos.splice(i,1); salvar(); render(); }
-function removerVar(i) { variaveis.splice(i,1); salvar(); render(); }
-
-function salvar() {
-  localStorage.setItem('fixos', JSON.stringify(fixos));
-  localStorage.setItem('variaveis', JSON.stringify(variaveis));
-  localStorage.setItem('renda', renda);
-}
-
-/* ============================================================
-   RENDER PRINCIPAL
-   ============================================================ */
-function render() {
-  document.getElementById('listaFixos').innerHTML = fixos.map((f,i) => {
-    const c = catPorId(f.categoria);
-    return `<tr>
-      <td>${f.nome}</td>
-      <td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td>
-      <td>${fmt(f.valor)}</td>
-      <td><button class="remover" onclick="removerFixo(${i})">x</button></td>
-    </tr>`;
-  }).join('');
-
-  const varsOrd = [...variaveis].sort((a,b) => a.data.localeCompare(b.data));
-  document.getElementById('listaVars').innerHTML = varsOrd.map(v => {
-    const i = variaveis.indexOf(v);
-    const c = catPorId(v.categoria);
-    const tag = v.tipo === 'recorrente'
-      ? `<span class="tipo-tag rec">🔄 Recorrente</span>`
-      : `<span class="tipo-tag esp">⚡ Esporádico</span>`;
-    return `<tr>
-      <td>${v.nome}</td>
-      <td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td>
-      <td>${tag}</td>
-      <td>${v.data.split('-').reverse().join('/')}</td>
-      <td>${fmt(v.valor)}</td>
-      <td><button class="remover" onclick="removerVar(${i})">x</button></td>
-    </tr>`;
-  }).join('');
-
-  const totalFixos = fixos.reduce((s,f) => s + f.valor, 0);
-  const totalVars = variaveis.reduce((s,v) => s + v.valor, 0);
-  const totalGeral = totalFixos + totalVars;
-  const saldo = renda - totalGeral;
-
-  document.getElementById('totalFixos').textContent = fmt(totalFixos);
-  document.getElementById('totalVariaveis').textContent = fmt(totalVars);
-  document.getElementById('totalGeral').textContent = fmt(totalGeral);
-  document.getElementById('saldo').textContent = fmt(saldo);
-
-  const cardSaldo = document.getElementById('cardSaldo');
-  cardSaldo.className = 'resumo ' + (saldo >= 0 ? 'positivo' : 'negativo');
-
-  if (document.getElementById('painel-graficos').classList.contains('ativo')) renderGraficos();
-  if (document.getElementById('painel-analise').classList.contains('ativo')) renderAnalise();
-}
-
-/* ============================================================
-   DADOS DO MÊS
-   ============================================================ */
-function dadosDoMes() {
-  const hoje = new Date();
-  const ano = hoje.getFullYear(), mes = hoje.getMonth();
-  const diasNoMes = new Date(ano, mes+1, 0).getDate();
-  const diaHoje = hoje.getDate();
-  const diasRestantes = diasNoMes - diaHoje;
-
-  const porDiaRec = Array(diasNoMes).fill(0);
-  const porDiaEsp = Array(diasNoMes).fill(0);
-  const porCategoriaRec = {}; // { catId: { total, porDia[] } }
-
-  CATEGORIAS.forEach(c => porCategoriaRec[c.id] = { total: 0, porDia: Array(diasNoMes).fill(0) });
-
-  variaveis.forEach(v => {
-    const [a, m, d] = v.data.split('-').map(Number);
-    if (a === ano && m === mes+1) {
-      if (v.tipo === 'recorrente') {
-        porDiaRec[d-1] += v.valor;
-        if (!porCategoriaRec[v.categoria]) {
-          porCategoriaRec[v.categoria] = { total: 0, porDia: Array(diasNoMes).fill(0) };
-        }
-        porCategoriaRec[v.categoria].total += v.valor;
-        porCategoriaRec[v.categoria].porDia[d-1] += v.valor;
-      } else {
-        porDiaEsp[d-1] += v.valor;
-      }
-    }
-  });
-
-  const totalFixos = fixos.reduce((s,f) => s + f.valor, 0);
-  const totalRec = porDiaRec.reduce((s,v) => s + v, 0);
-  const totalEsp = porDiaEsp.reduce((s,v) => s + v, 0);
-
-  return {
-    ano, mes, diasNoMes, diaHoje, diasRestantes,
-    porDiaRec, porDiaEsp, porCategoriaRec,
-    totalFixos, totalRec, totalEsp
-  };
-}
-
-/* ============================================================
-   ANÁLISE + PROJEÇÃO
-   ============================================================ */
-function renderAnalise() {
-  const {
-    diasNoMes, diaHoje, diasRestantes,
-    porDiaRec, porDiaEsp, porCategoriaRec,
-    totalFixos, totalRec, totalEsp
-  } = dadosDoMes();
-
-  const diasJaPassados = diaHoje;
-
-  // Médias diárias separadas
-  const mediaRec = diasJaPassados > 0 ? totalRec / diasJaPassados : 0;
-  const mediaEsp = diasJaPassados > 0 ? totalEsp / diasJaPassados : 0;
-
-  // Projeção: realizados + (média diária × dias restantes)
-  const projRec = totalRec + mediaRec * diasRestantes;
-  const projEsp = totalEsp + mediaEsp * diasRestantes;
-  const projecaoGasto = projRec + projEsp + totalFixos;
-  const projecaoSaldo = renda - projecaoGasto;
-
-  const disponivel = renda - totalFixos - totalRec - totalEsp;
-  const limiteDiario = diasRestantes > 0 ? disponivel / diasRestantes : disponivel;
-
-  // Cards
-  document.getElementById('mediaRec').textContent = fmt(mediaRec);
-  document.getElementById('infoRec').textContent =
-    diasJaPassados > 0 ? `${fmt(totalRec)} em ${diasJaPassados} dia(s)` : 'Sem dados';
-
-  document.getElementById('mediaEsp').textContent = fmt(mediaEsp);
-  document.getElementById('infoEsp').textContent =
-    diasJaPassados > 0 ? `${fmt(totalEsp)} em ${diasJaPassados} dia(s)` : 'Sem dados';
-
-  document.getElementById('projecaoGasto').textContent = fmt(projecaoGasto);
-  document.getElementById('detalheProj').innerHTML =
-    `🔄 ${fmt(projRec)} + ⚡ ${fmt(projEsp)} + 📌 ${fmt(totalFixos)}`;
-
-  document.getElementById('projecaoSaldo').textContent = fmt(projecaoSaldo);
-  const cardProj = document.getElementById('cardProjSaldo');
-  cardProj.className = 'resumo ' + (projecaoSaldo >= 0 ? 'positivo' : 'negativo');
-
-  document.getElementById('diasRestantes').textContent = diasRestantes;
-  document.getElementById('limiteDiario').textContent =
-    diasRestantes > 0
-      ? `Pode gastar ${fmt(Math.max(0, limiteDiario))}/dia`
-      : 'Último dia do mês';
-
-  // Alerta
-  const alerta = document.getElementById('alertaAnalise');
-  if (renda <= 0) {
-    alerta.innerHTML = `<div class="alerta aviso">⚠️ Cadastre sua renda mensal para ver projeções precisas.</div>`;
-  } else if (projecaoSaldo < 0) {
-    alerta.innerHTML = `<div class="alerta erro">🚨 <strong>Alerta:</strong> no ritmo atual você deve terminar o mês com <strong>${fmt(projecaoSaldo)}</strong>. Reduza os gastos diários para cerca de ${fmt(Math.max(0, limiteDiario))}/dia.</div>`;
-  } else if (projecaoSaldo < renda * 0.1) {
-    alerta.innerHTML = `<div class="alerta aviso">⚠️ <strong>Atenção:</strong> projeção de sobra baixa (${fmt(projecaoSaldo)}). Mantenha o controle.</div>`;
-  } else {
-    alerta.innerHTML = `<div class="alerta ok">✅ <strong>No caminho certo!</strong> Projeção de sobra: <strong>${fmt(projecaoSaldo)}</strong>.</div>`;
-  }
-
-  /* ---- Tabela de projeção por categoria recorrente ---- */
-  const linhas = [];
-  CATEGORIAS.forEach(c => {
-    const dados = porCategoriaRec[c.id];
-    if (!dados || dados.total === 0) return;
-    const mediaCat = diasJaPassados > 0 ? dados.total / diasJaPassados : 0;
-    const projCat = dados.total + mediaCat * diasRestantes;
-    const restante = projCat - dados.total;
-    linhas.push({ cat: c, total: dados.total, mediaCat, projCat, restante });
-  });
-
-  linhas.sort((a,b) => b.projCat - a.projCat);
-
-  document.getElementById('tabelaProjCategorias').innerHTML = linhas.length
-    ? linhas.map(l => {
-        const c = l.cat;
-        return `<tr>
-          <td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td>
-          <td>${fmt(l.total)}</td>
-          <td>${fmt(l.mediaCat)}/dia</td>
-          <td><strong>${fmt(l.projCat)}</strong></td>
-          <td style="color:#a855f7">+${fmt(l.restante)}</td>
-        </tr>`;
-      }).join('')
-    : `<tr><td colspan="5" style="color:#64748b">Nenhum gasto recorrente registrado ainda neste mês.</td></tr>`;
-
-  /* ---- Gráfico de barras: diário (rec + esp + fixos) ---- */
-  const labelsBarras = Array.from({length: diasNoMes}, (_,i) => `${i+1}`);
-  const fixoDia = Array(diasNoMes).fill(totalFixos / diasNoMes);
-
-  const ctxB = document.getElementById('graficoBarras').getContext('2d');
-  if (chartBarras) chartBarras.destroy();
-  chartBarras = new Chart(ctxB, {
-    type: 'bar',
-    data: {
-      labels: labelsBarras,
-      datasets: [
-        {
-          label: '🔄 Recorrentes',
-          data: porDiaRec,
-          backgroundColor: '#a855f7cc',
-          borderRadius: 4,
-          stack: 'gastos'
-        },
-        {
-          label: '⚡ Esporádicos',
-          data: porDiaEsp,
-          backgroundColor: '#f59e0bcc',
-          borderRadius: 4,
-          stack: 'gastos'
-        },
-        {
-          label: '📌 Fixos (rateio)',
-          data: fixoDia,
-          backgroundColor: '#38bdf855',
-          borderRadius: 4,
-          stack: 'gastos'
-        },
-        {
-          label: 'Média rec./dia',
-          data: Array(diasNoMes).fill(mediaRec),
-          type: 'line',
-          borderColor: '#22c55e',
-          borderDash: [6,6],
-          pointRadius: 0,
-          borderWidth: 2
-        }
-      ]
-    },
-    options: {
-      plugins: {
-        legend: { labels: { color:'#e2e8f0' } },
-        tooltip: {
-          callbacks: {
-            footer: items => {
-              const total = items.reduce((s,i) => s + (i.parsed.y || 0), 0);
-              return 'Total do dia: ' + fmt(total);
+        /* ============================================================
+           3. AUTENTICAÇÃO
+           ============================================================ */
+        async function checarSessao() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('conteudo-painel').style.display = 'block';
+                await carregarDados();
+            } else {
+                document.getElementById('tela-login').style.display = 'block';
+                document.getElementById('conteudo-painel').style.display = 'none';
             }
-          }
         }
-      },
-      scales: {
-        x: { stacked: true, ticks:{ color:'#94a3b8' }, grid:{ display:false } },
-        y: { stacked: true, ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } }
-      }
-    }
-  });
 
-  /* ---- Projeção acumulada (realizado vs projetado, com rec/esp) ---- */
-  const acumRealRec = Array(diasNoMes).fill(null);
-  const acumRealEsp = Array(diasNoMes).fill(null);
-  const acumProj = Array(diasNoMes).fill(null);
-
-  let accRec = 0, accEsp = 0;
-  for (let d = 0; d < diasNoMes; d++) {
-    accRec += porDiaRec[d];
-    accEsp += porDiaEsp[d];
-    const totalDia = accRec + accEsp + totalFixos * (d+1) / diasNoMes;
-    if (d + 1 <= diaHoje) {
-      acumRealRec[d] = accRec + totalFixos * (d+1) / diasNoMes;
-      acumRealEsp[d] = accEsp;
-    }
-    if (d + 1 >= diaHoje - 1) {
-      const diasDesdeHoje = d + 1 - diaHoje;
-      acumProj[d] = totalDia
-        + (mediaRec + mediaEsp) * Math.max(0, diasDesdeHoje);
-    }
-  }
-
-  const ctxP = document.getElementById('graficoProjecao').getContext('2d');
-  if (chartProjecao) chartProjecao.destroy();
-  chartProjecao = new Chart(ctxP, {
-    type: 'line',
-    data: {
-      labels: labelsBarras,
-      datasets: [
-        {
-          label: 'Realizado (total c/ fixos)',
-          data: acumRealRec,
-          borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56,189,248,.15)',
-          fill: true, tension: .3, spanGaps: false
-        },
-        {
-          label: '🔮 Projeção',
-          data: acumProj,
-          borderColor: '#a855f7',
-          borderDash: [6,6], pointRadius: 0, tension: .3, spanGaps: false
-        },
-        {
-          label: 'Renda',
-          data: Array(diasNoMes).fill(renda),
-          borderColor: '#22c55e', borderDash: [3,3], pointRadius: 0
-        },
-        {
-          label: 'Gastos fixos',
-          data: Array(diasNoMes).fill(totalFixos),
-          borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0
+        async function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const msg = document.getElementById('login-msg');
+            if (!email) { msg.textContent = 'Digite seu e-mail.'; return; }
+            const { error } = await supabase.auth.signInWithOtp({ email });
+            if (error) msg.textContent = 'Erro: ' + error.message;
+            else msg.textContent = '✅ Link de acesso enviado para seu e-mail!';
         }
-      ]
-    },
-    options: {
-      plugins: {
-        legend: { labels: { color:'#e2e8f0' } },
-        tooltip: {
-          callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y == null ? '—' : fmt(ctx.parsed.y)}`
-          }
+
+        async function loginComGoogle() {
+            await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
         }
-      },
-      scales: {
-        x: { ticks:{ color:'#94a3b8' }, grid:{ color:'#1e293b' } },
-        y: { ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } }
-      }
-    }
-  });
-}
 
-/* ============================================================
-   GRÁFICOS
-   ============================================================ */
-function renderGraficos() {
-  const { diasNoMes, porDiaRec, porDiaEsp, totalFixos } = dadosDoMes();
+        async function fazerLogout() {
+            await supabase.auth.signOut();
+            checarSessao();
+        }
 
-  const labels = Array.from({length: diasNoMes}, (_,i) => `${i+1}`);
-  const acumulado = Array(diasNoMes).fill(0);
-  let soma = 0;
-  for (let d = 0; d < diasNoMes; d++) {
-    soma += porDiaRec[d] + porDiaEsp[d] + totalFixos / diasNoMes;
-    acumulado[d] = soma;
-  }
+        /* ============================================================
+           4. CARREGAR E SALVAR DADOS
+           ============================================================ */
+        async function carregarDados() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-  const ctxL = document.getElementById('graficoLinha').getContext('2d');
-  if (chartLinha) chartLinha.destroy();
-  chartLinha = new Chart(ctxL, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Gasto acumulado', data: acumulado, borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,.15)', fill:true, tension:.3 },
-        { label: 'Renda', data: Array(diasNoMes).fill(renda), borderColor:'#22c55e', borderDash:[6,6], pointRadius:0 },
-        { label: 'Limite gastos fixos', data: Array(diasNoMes).fill(totalFixos), borderColor:'#f59e0b', borderDash:[3,3], pointRadius:0 }
-      ]
-    },
-    options: {
-      plugins: { legend: { labels: { color:'#e2e8f0' } } },
-      scales: {
-        x: { ticks:{ color:'#94a3b8' }, grid:{ color:'#1e293b' } },
-        y: { ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } }
-      }
-    }
-  });
+            // Carrega despesas do mês atual
+            const hoje = new Date();
+            const inicioMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-01`;
+            
+            const { data, error } = await supabase
+                .from('despesas')
+                .select('*')
+                .gte('data', inicioMes)
+                .order('data', { ascending: true });
 
-  // Pizza
-  const porCategoria = {};
-  CATEGORIAS.forEach(c => porCategoria[c.id] = 0);
-  fixos.forEach(f => porCategoria[f.categoria] = (porCategoria[f.categoria] || 0) + f.valor);
-  variaveis.forEach(v => porCategoria[v.categoria] = (porCategoria[v.categoria] || 0) + v.valor);
+            if (error) { console.error('Erro ao carregar:', error); return; }
+            despesas = data || [];
 
-  const usadas = CATEGORIAS.filter(c => porCategoria[c.id] > 0);
-  const totalCat = usadas.reduce((s,c) => s + porCategoria[c.id], 0) || 1;
+            // Carrega renda do localStorage (pode ser salva no Supabase depois, se preferir)
+            renda = parseFloat(localStorage.getItem('renda') || 0);
+            document.getElementById('renda').value = renda || '';
 
-  const ctxP = document.getElementById('graficoPizza').getContext('2d');
-  if (chartPizza) chartPizza.destroy();
-  chartPizza = new Chart(ctxP, {
-    type: 'doughnut',
-    data: {
-      labels: usadas.map(c => `${c.icone} ${c.nome}`),
-      datasets: [{
-        data: usadas.map(c => porCategoria[c.id]),
-        backgroundColor: usadas.map(c => c.cor),
-        borderColor: '#1e293b',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { labels: { color:'#e2e8f0', padding: 12 } },
-        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmt(ctx.parsed)}` } }
-      }
-    }
-  });
+            render();
+        }
 
-  document.getElementById('tabelaCategorias').innerHTML = usadas
-    .sort((a,b) => porCategoria[b.id] - porCategoria[a.id])
-    .map(c => {
-      const pct = (porCategoria[c.id] / totalCat * 100).toFixed(1);
-      return `<tr>
-        <td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td>
-        <td>${fmt(porCategoria[c.id])}</td>
-        <td>${pct}%</td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="3" style="color:#64748b">Nenhum gasto registrado ainda</td></tr>';
-}
+        async function addFixo() {
+            const nome = document.getElementById('fixoNome').value.trim();
+            const valor = parseFloat(document.getElementById('fixoValor').value);
+            const categoria = document.getElementById('fixoCategoria').value;
+            if (!nome || isNaN(valor)) return;
 
-/* ============================================================
-   INICIALIZAÇÃO
-   ============================================================ */
-popularCategorias();
-document.getElementById('renda').value = renda || '';
-document.getElementById('renda').addEventListener('input', e => {
-  renda = parseFloat(e.target.value) || 0;
-  salvar(); render();
-});
-document.getElementById('varData').value = new Date().toISOString().slice(0,10);
+            const { error } = await supabase.from('despesas').insert([{
+                nome, valor, categoria, tipo: 'fixo', data: new Date().toISOString().slice(0,10)
+            }]);
+            if (error) { alert('Erro ao salvar: ' + error.message); return; }
 
-render();
-</script>
+            document.getElementById('fixoNome').value = '';
+            document.getElementById('fixoValor').value = '';
+            await carregarDados();
+        }
+
+        async function addVar() {
+            const nome = document.getElementById('varNome').value.trim();
+            const valor = parseFloat(document.getElementById('varValor').value);
+            const data = document.getElementById('varData').value || new Date().toISOString().slice(0,10);
+            const categoria = document.getElementById('varCategoria').value;
+            const tipo = document.getElementById('varTipo').value;
+            if (!nome || isNaN(valor)) return;
+
+            const { error } = await supabase.from('despesas').insert([{
+                nome, valor, data, categoria, tipo
+            }]);
+            if (error) { alert('Erro ao salvar: ' + error.message); return; }
+
+            document.getElementById('varNome').value = '';
+            document.getElementById('varValor').value = '';
+            await carregarDados();
+        }
+
+        async function removerItem(id) {
+            if (!confirm('Remover este gasto?')) return;
+            const { error } = await supabase.from('despesas').delete().eq('id', id);
+            if (error) { alert('Erro ao remover: ' + error.message); return; }
+            await carregarDados();
+        }
+
+        function salvarRenda() {
+            renda = parseFloat(document.getElementById('renda').value) || 0;
+            localStorage.setItem('renda', renda);
+            render();
+        }
+
+        /* ============================================================
+           5. RENDERIZAÇÃO (MESMA LÓGICA DE ANTES)
+           ============================================================ */
+        function trocarAba(nome, btn) {
+            document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
+            document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
+            btn.classList.add('ativa');
+            document.getElementById('painel-' + nome).classList.add('ativo');
+            if (nome === 'graficos') renderGraficos();
+            if (nome === 'analise') renderAnalise();
+        }
+
+        function popularCategorias() {
+            const fixoSel = document.getElementById('fixoCategoria');
+            const sugeridas = CATEGORIAS.filter(c => SUGESTOES_FIXAS.includes(c.id));
+            const outras = CATEGORIAS.filter(c => !SUGESTOES_FIXAS.includes(c.id));
+            fixoSel.innerHTML = `<optgroup label="Sugeridas">` + sugeridas.map(c => `<option value="${c.id}">${c.icone} ${c.nome}</option>`).join('') + `</optgroup><optgroup label="Outras">` + outras.map(c => `<option value="${c.id}">${c.icone} ${c.nome}</option>`).join('') + `</optgroup>`;
+
+            const varSel = document.getElementById('varCategoria');
+            varSel.innerHTML = CATEGORIAS.slice().sort((a,b) => a.nome.localeCompare(b.nome)).map(c => `<option value="${c.id}">${c.icone} ${c.nome}</option>`).join('');
+            varSel.addEventListener('change', () => {
+                const tipoSel = document.getElementById('varTipo');
+                tipoSel.value = CATEGORIAS_RECORRENTES.includes(varSel.value) ? 'recorrente' : 'esporadico';
+            });
+            varSel.dispatchEvent(new Event('change'));
+        }
+
+        function render() {
+            const fixos = despesas.filter(d => d.tipo === 'fixo');
+            const variaveis = despesas.filter(d => d.tipo !== 'fixo');
+
+            // Listas
+            document.getElementById('listaFixos').innerHTML = fixos.map(d => {
+                const c = catPorId(d.categoria);
+                return `<tr><td>${d.nome}</td><td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td><td>${fmt(d.valor)}</td><td><button class="remover" onclick="removerItem(${d.id})">x</button></td></tr>`;
+            }).join('');
+
+            const varsOrd = [...variaveis].sort((a,b) => a.data.localeCompare(b.data));
+            document.getElementById('listaVars').innerHTML = varsOrd.map(d => {
+                const c = catPorId(d.categoria);
+                const tag = d.tipo === 'recorrente' ? `<span class="tipo-tag rec">🔄 Recorrente</span>` : `<span class="tipo-tag esp">⚡ Esporádico</span>`;
+                return `<tr><td>${d.nome}</td><td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td><td>${tag}</td><td>${d.data.split('-').reverse().join('/')}</td><td>${fmt(d.valor)}</td><td><button class="remover" onclick="removerItem(${d.id})">x</button></td></tr>`;
+            }).join('');
+
+            // Totais
+            const totalFixos = fixos.reduce((s,d) => s + d.valor, 0);
+            const totalVars = variaveis.reduce((s,d) => s + d.valor, 0);
+            const totalGeral = totalFixos + totalVars;
+            const saldo = renda - totalGeral;
+
+            document.getElementById('totalFixos').textContent = fmt(totalFixos);
+            document.getElementById('totalVariaveis').textContent = fmt(totalVars);
+            document.getElementById('totalGeral').textContent = fmt(totalGeral);
+            document.getElementById('saldo').textContent = fmt(saldo);
+            document.getElementById('cardSaldo').className = 'resumo ' + (saldo >= 0 ? 'positivo' : 'negativo');
+        }
+
+        /* ============================================================
+           6. GRÁFICOS E ANÁLISE (MANTIDOS DO CÓDIGO ORIGINAL)
+           ============================================================ */
+        function dadosDoMes() {
+            const hoje = new Date();
+            const ano = hoje.getFullYear(), mes = hoje.getMonth();
+            const diasNoMes = new Date(ano, mes+1, 0).getDate();
+            const diaHoje = hoje.getDate();
+            const diasRestantes = diasNoMes - diaHoje;
+            const porDiaRec = Array(diasNoMes).fill(0);
+            const porDiaEsp = Array(diasNoMes).fill(0);
+            const porCategoriaRec = {};
+            CATEGORIAS.forEach(c => porCategoriaRec[c.id] = { total: 0, porDia: Array(diasNoMes).fill(0) });
+
+            despesas.filter(d => d.tipo !== 'fixo').forEach(d => {
+                const [a, m, day] = d.data.split('-').map(Number);
+                if (a === ano && m === mes+1) {
+                    if (d.tipo === 'recorrente') {
+                        porDiaRec[day-1] += d.valor;
+                        if (!porCategoriaRec[d.categoria]) porCategoriaRec[d.categoria] = { total: 0, porDia: Array(diasNoMes).fill(0) };
+                        porCategoriaRec[d.categoria].total += d.valor;
+                        porCategoriaRec[d.categoria].porDia[day-1] += d.valor;
+                    } else {
+                        porDiaEsp[day-1] += d.valor;
+                    }
+                }
+            });
+
+            const totalFixos = despesas.filter(d => d.tipo === 'fixo').reduce((s,d) => s + d.valor, 0);
+            const totalRec = porDiaRec.reduce((s,v) => s + v, 0);
+            const totalEsp = porDiaEsp.reduce((s,v) => s + v, 0);
+
+            return { ano, mes, diasNoMes, diaHoje, diasRestantes, porDiaRec, porDiaEsp, porCategoriaRec, totalFixos, totalRec, totalEsp };
+        }
+
+        function renderAnalise() {
+            const { diasNoMes, diaHoje, diasRestantes, porDiaRec, porDiaEsp, porCategoriaRec, totalFixos, totalRec, totalEsp } = dadosDoMes();
+            const diasJaPassados = diaHoje;
+            const mediaRec = diasJaPassados > 0 ? totalRec / diasJaPassados : 0;
+            const mediaEsp = diasJaPassados > 0 ? totalEsp / diasJaPassados : 0;
+            const projRec = totalRec + mediaRec * diasRestantes;
+            const projEsp = totalEsp + mediaEsp * diasRestantes;
+            const projecaoGasto = projRec + projEsp + totalFixos;
+            const projecaoSaldo = renda - projecaoGasto;
+
+            document.getElementById('mediaRec').textContent = fmt(mediaRec);
+            document.getElementById('infoRec').textContent = diasJaPassados > 0 ? `${fmt(totalRec)} em ${diasJaPassados} dia(s)` : 'Sem dados';
+            document.getElementById('mediaEsp').textContent = fmt(mediaEsp);
+            document.getElementById('infoEsp').textContent = diasJaPassados > 0 ? `${fmt(totalEsp)} em ${diasJaPassados} dia(s)` : 'Sem dados';
+            document.getElementById('projecaoGasto').textContent = fmt(projecaoGasto);
+            document.getElementById('detalheProj').innerHTML = `🔄 ${fmt(projRec)} + ⚡ ${fmt(projEsp)} + 📌 ${fmt(totalFixos)}`;
+            document.getElementById('projecaoSaldo').textContent = fmt(projecaoSaldo);
+            document.getElementById('cardProjSaldo').className = 'resumo ' + (projecaoSaldo >= 0 ? 'positivo' : 'negativo');
+            document.getElementById('diasRestantes').textContent = diasRestantes;
+            document.getElementById('limiteDiario').textContent = diasRestantes > 0 ? `Pode gastar ${fmt(Math.max(0, (renda - totalFixos - totalRec - totalEsp) / diasRestantes))}/dia` : 'Último dia do mês';
+
+            // Alerta
+            const alerta = document.getElementById('alertaAnalise');
+            if (renda <= 0) alerta.innerHTML = `<div class="alerta aviso">⚠️ Cadastre sua renda mensal.</div>`;
+            else if (projecaoSaldo < 0) alerta.innerHTML = `<div class="alerta erro">🚨 Alerta: projeção de saldo negativa (${fmt(projecaoSaldo)}). Reduza gastos.</div>`;
+            else if (projecaoSaldo < renda * 0.1) alerta.innerHTML = `<div class="alerta aviso">⚠️ Atenção: sobra projetada baixa (${fmt(projecaoSaldo)}).</div>`;
+            else alerta.innerHTML = `<div class="alerta ok">✅ No caminho certo! Projeção de sobra: ${fmt(projecaoSaldo)}.</div>`;
+
+            // Tabela de projeção por categoria recorrente
+            const linhas = [];
+            CATEGORIAS.forEach(c => {
+                const dados = porCategoriaRec[c.id];
+                if (!dados || dados.total === 0) return;
+                const mediaCat = diasJaPassados > 0 ? dados.total / diasJaPassados : 0;
+                const projCat = dados.total + mediaCat * diasRestantes;
+                linhas.push({ cat: c, total: dados.total, mediaCat, projCat, restante: projCat - dados.total });
+            });
+            linhas.sort((a,b) => b.projCat - a.projCat);
+            document.getElementById('tabelaProjCategorias').innerHTML = linhas.length ? linhas.map(l => `<tr><td><span class="badge" style="background:${l.cat.cor}22;color:${l.cat.cor}">${l.cat.icone} ${l.cat.nome}</span></td><td>${fmt(l.total)}</td><td>${fmt(l.mediaCat)}/dia</td><td><strong>${fmt(l.projCat)}</strong></td><td style="color:#a855f7">+${fmt(l.restante)}</td></tr>`).join('') : `<tr><td colspan="5" style="color:#64748b">Nenhum gasto recorrente neste mês.</td></tr>`;
+
+            // Gráfico de barras
+            const labelsBarras = Array.from({length: diasNoMes}, (_,i) => `${i+1}`);
+            const fixoDia = Array(diasNoMes).fill(totalFixos / diasNoMes);
+            const ctxB = document.getElementById('graficoBarras').getContext('2d');
+            if (chartBarras) chartBarras.destroy();
+            chartBarras = new Chart(ctxB, {
+                type: 'bar',
+                data: { labels: labelsBarras, datasets: [
+                    { label: '🔄 Recorrentes', data: porDiaRec, backgroundColor: '#a855f7cc', borderRadius: 4, stack: 'gastos' },
+                    { label: '⚡ Esporádicos', data: porDiaEsp, backgroundColor: '#f59e0bcc', borderRadius: 4, stack: 'gastos' },
+                    { label: '📌 Fixos (rateio)', data: fixoDia, backgroundColor: '#38bdf855', borderRadius: 4, stack: 'gastos' },
+                    { label: 'Média rec./dia', data: Array(diasNoMes).fill(mediaRec), type: 'line', borderColor: '#22c55e', borderDash: [6,6], pointRadius: 0, borderWidth: 2 }
+                ]},
+                options: { plugins: { legend: { labels: { color:'#e2e8f0' } } }, scales: { x: { stacked: true, ticks:{ color:'#94a3b8' }, grid:{ display:false } }, y: { stacked: true, ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } } } }
+            });
+
+            // Projeção acumulada
+            const acumReal = Array(diasNoMes).fill(null);
+            const acumProj = Array(diasNoMes).fill(null);
+            let accRec = 0, accEsp = 0;
+            for (let d = 0; d < diasNoMes; d++) {
+                accRec += porDiaRec[d]; accEsp += porDiaEsp[d];
+                const totalDia = accRec + accEsp + totalFixos * (d+1) / diasNoMes;
+                if (d + 1 <= diaHoje) acumReal[d] = totalDia;
+                if (d + 1 >= diaHoje - 1) acumProj[d] = totalDia + (mediaRec + mediaEsp) * Math.max(0, d + 1 - diaHoje);
+            }
+            const ctxP = document.getElementById('graficoProjecao').getContext('2d');
+            if (chartProjecao) chartProjecao.destroy();
+            chartProjecao = new Chart(ctxP, {
+                type: 'line',
+                data: { labels: labelsBarras, datasets: [
+                    { label: 'Realizado (c/ fixos)', data: acumReal, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.15)', fill: true, tension: .3, spanGaps: false },
+                    { label: '🔮 Projeção', data: acumProj, borderColor: '#a855f7', borderDash: [6,6], pointRadius: 0, tension: .3, spanGaps: false },
+                    { label: 'Renda', data: Array(diasNoMes).fill(renda), borderColor: '#22c55e', borderDash: [3,3], pointRadius: 0 },
+                    { label: 'Gastos fixos', data: Array(diasNoMes).fill(totalFixos), borderColor: '#f59e0b', borderDash: [3,3], pointRadius: 0 }
+                ]},
+                options: { plugins: { legend: { labels: { color:'#e2e8f0' } } }, scales: { x: { ticks:{ color:'#94a3b8' }, grid:{ color:'#1e293b' } }, y: { ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } } } }
+            });
+        }
+
+        function renderGraficos() {
+            const { diasNoMes, porDiaRec, porDiaEsp, totalFixos } = dadosDoMes();
+            const labels = Array.from({length: diasNoMes}, (_,i) => `${i+1}`);
+            const acumulado = Array(diasNoMes).fill(0);
+            let soma = 0;
+            for (let d = 0; d < diasNoMes; d++) { soma += porDiaRec[d] + porDiaEsp[d] + totalFixos / diasNoMes; acumulado[d] = soma; }
+
+            const ctxL = document.getElementById('graficoLinha').getContext('2d');
+            if (chartLinha) chartLinha.destroy();
+            chartLinha = new Chart(ctxL, {
+                type: 'line',
+                data: { labels, datasets: [
+                    { label: 'Gasto acumulado', data: acumulado, borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,.15)', fill:true, tension:.3 },
+                    { label: 'Renda', data: Array(diasNoMes).fill(renda), borderColor:'#22c55e', borderDash:[6,6], pointRadius:0 },
+                    { label: 'Limite gastos fixos', data: Array(diasNoMes).fill(totalFixos), borderColor:'#f59e0b', borderDash:[3,3], pointRadius:0 }
+                ]},
+                options: { plugins: { legend: { labels: { color:'#e2e8f0' } } }, scales: { x: { ticks:{ color:'#94a3b8' }, grid:{ color:'#1e293b' } }, y: { ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } } } }
+            });
+
+            const porCategoria = {};
+            CATEGORIAS.forEach(c => porCategoria[c.id] = 0);
+            despesas.forEach(d => porCategoria[d.categoria] = (porCategoria[d.categoria] || 0) + d.valor);
+            const usadas = CATEGORIAS.filter(c => porCategoria[c.id] > 0);
+            const totalCat = usadas.reduce((s,c) => s + porCategoria[c.id], 0) || 1;
+
+            const ctxP = document.getElementById('graficoPizza').getContext('2d');
+            if (chartPizza) chartPizza.destroy();
+            chartPizza = new Chart(ctxP, {
+                type: 'doughnut',
+                data: { labels: usadas.map(c => `${c.icone} ${c.nome}`), datasets: [{ data: usadas.map(c => porCategoria[c.id]), backgroundColor: usadas.map(c => c.cor), borderColor: '#1e293b', borderWidth: 2 }] },
+                options: { plugins: { legend: { labels: { color:'#e2e8f0', padding: 12 } } } }
+            });
+
+            document.getElementById('tabelaCategorias').innerHTML = usadas.sort((a,b) => porCategoria[b.id] - porCategoria[a.id]).map(c => {
+                const pct = (porCategoria[c.id] / totalCat * 100).toFixed(1);
+                return `<tr><td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td><td>${fmt(porCategoria[c.id])}</td><td>${pct}%</td></tr>`;
+            }).join('') || '<tr><td colspan="3" style="color:#64748b">Nenhum gasto registrado.</td></tr>';
+        }
+
+        /* ============================================================
+           7. INICIALIZAÇÃO
+           ============================================================ */
+        window.addEventListener('DOMContentLoaded', () => {
+            popularCategorias();
+            document.getElementById('varData').value = new Date().toISOString().slice(0,10);
+            document.getElementById('renda').addEventListener('input', salvarRenda);
+            
+            // Verifica sessão ao carregar
+            checarSessao();
+
+            // Escuta mudanças de autenticação (ex: retorno do login)
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    checarSessao();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
