@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Painel Financeiro Mensal - Supabase</title>
+    <title>Painel Financeiro Mensal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -46,32 +46,29 @@
         .tipo-tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:.72rem; font-weight:700; letter-spacing:.02em; }
         .tipo-tag.rec  { background:#a855f733; color:#d8b4fe; }
         .tipo-tag.esp  { background:#f59e0b33; color:#fcd34d; }
-        .tipo-tag.fixo { background:#38bdf833; color:#7dd3fc; }
-        .auth-container { max-width: 400px; margin: 80px auto; text-align: center; }
-        .auth-container input { margin-bottom: 15px; }
-        .btn-google { background: #fff; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; }
-        .btn-google:hover { background: #f1f5f9; }
+        .auth-container { max-width: 420px; margin: 60px auto; }
+        .auth-container input { margin-bottom: 12px; }
+        .auth-container p { color:#94a3b8; font-size:.9rem; }
+        .aviso-info { background:#1e293b; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:8px; font-size:.9rem; color:#cbd5e1; margin-top:15px; }
     </style>
 </head>
 <body>
 
     <!-- TELA DE LOGIN -->
     <div id="tela-login" class="auth-container card" style="display:none;">
-        <h2>💰 Painel Financeiro</h2>
-        <p style="color:#94a3b8; font-size:.9rem;">Entre para sincronizar seus gastos em qualquer dispositivo.</p>
-        <input type="email" id="email" placeholder="Seu e-mail">
-        <button onclick="fazerLogin()">Entrar com E-mail (Link Mágico)</button>
-        <hr style="border-color:#334155; margin: 20px 0;">
-        <button class="btn-google" onclick="loginComGoogle()">
-            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-            Entrar com Google
-        </button>
-        <p id="login-msg" style="color:#f59e0b; font-size:.85rem; margin-top:15px;"></p>
+        <h2 style="margin-top:0;color:#38bdf8;">💰 Painel Financeiro</h2>
+        <p>Entre para sincronizar seus gastos em qualquer dispositivo.</p>
+        <input type="email" id="email" placeholder="Digite seu e-mail">
+        <button onclick="fazerLogin()">✉️ Entrar com E-mail (Link Mágico)</button>
+        <p id="login-msg" style="color:#f59e0b; margin-top:12px;"></p>
+        <div class="aviso-info">
+            💡 Você receberá um link de acesso no seu e-mail. Basta clicar nele para entrar no painel.
+        </div>
     </div>
 
-    <!-- CONTEÚDO DO PAINEL (Só aparece após login) -->
+    <!-- CONTEÚDO DO PAINEL -->
     <div id="conteudo-painel" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
             <h1 style="margin:0;">💰 Painel Financeiro</h1>
             <button onclick="fazerLogout()" style="width:auto; background:#334155; color:#e2e8f0;">Sair</button>
         </div>
@@ -164,7 +161,7 @@
             <div class="card" style="margin-bottom:20px">
                 <h2>🔮 Projeção de Despesas Variáveis Recorrentes por Categoria</h2>
                 <table>
-                    <thead><tr><th>Categoria</th><th>Gasto no mês</th><th>Média diária</th><th>Projeção total do mês</th><th>Restante a gastar</th></tr></thead>
+                    <thead><tr><th>Categoria</th><th>Gasto no mês</th><th>Média diária</th><th>Projeção total</th><th>Restante</th></tr></thead>
                     <tbody id="tabelaProjCategorias"></tbody>
                 </table>
             </div>
@@ -183,16 +180,19 @@
 
     <script>
         /* ============================================================
-           1. CONFIGURAÇÃO DO SUPABASE
+           CONFIGURAÇÃO DO SUPABASE
+           ============================================================
+           A URL já está preenchida.
+           Falta você substituir COLE_SUA_CHAVE_AQUI pela sua chave
+           publishable (a nova, se você rotacionou).
            ============================================================ */
-        // SUBSTITUA pelos seus valores do Supabase (Settings > API)
-        const SUPABASE_URL = 'SUA_URL_AQUI'; 
-        const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI';
+        const SUPABASE_URL = 'https://xqdtiotxxlcehxosltpa.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_i38eTudCVaunElE99rHiHw_Hcc6rTAU';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         /* ============================================================
-           2. CATEGORIAS E ESTADO
+           CATEGORIAS
            ============================================================ */
         const CATEGORIAS = [
             { id: 'alimentacao',  nome: 'Alimentação',   cor: '#22c55e', icone: '🍎' },
@@ -212,12 +212,12 @@
         const catPorId = id => CATEGORIAS.find(c => c.id === id) || CATEGORIAS[CATEGORIAS.length-1];
         const fmt = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 
-        let despesas = []; // Array global que guarda os dados do Supabase
+        let despesas = [];
         let renda = 0;
         let chartLinha, chartPizza, chartBarras, chartProjecao;
 
         /* ============================================================
-           3. AUTENTICAÇÃO
+           AUTENTICAÇÃO
            ============================================================ */
         async function checarSessao() {
             const { data: { session } } = await supabase.auth.getSession();
@@ -232,19 +232,16 @@
         }
 
         async function fazerLogin() {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const msg = document.getElementById('login-msg');
             if (!email) { msg.textContent = 'Digite seu e-mail.'; return; }
-            const { error } = await supabase.auth.signInWithOtp({ email });
-            if (error) msg.textContent = 'Erro: ' + error.message;
-            else msg.textContent = '✅ Link de acesso enviado para seu e-mail!';
-        }
-
-        async function loginComGoogle() {
-            await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
+            msg.textContent = 'Enviando...';
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: { emailRedirectTo: window.location.href }
             });
+            if (error) msg.textContent = 'Erro: ' + error.message;
+            else msg.textContent = '✅ Link enviado! Verifique seu e-mail (inclusive o spam).';
         }
 
         async function fazerLogout() {
@@ -253,13 +250,12 @@
         }
 
         /* ============================================================
-           4. CARREGAR E SALVAR DADOS
+           DADOS
            ============================================================ */
         async function carregarDados() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Carrega despesas do mês atual
             const hoje = new Date();
             const inicioMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-01`;
             
@@ -272,7 +268,6 @@
             if (error) { console.error('Erro ao carregar:', error); return; }
             despesas = data || [];
 
-            // Carrega renda do localStorage (pode ser salva no Supabase depois, se preferir)
             renda = parseFloat(localStorage.getItem('renda') || 0);
             document.getElementById('renda').value = renda || '';
 
@@ -283,12 +278,14 @@
             const nome = document.getElementById('fixoNome').value.trim();
             const valor = parseFloat(document.getElementById('fixoValor').value);
             const categoria = document.getElementById('fixoCategoria').value;
-            if (!nome || isNaN(valor)) return;
+            if (!nome || isNaN(valor)) { alert('Preencha nome e valor.'); return; }
 
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase.from('despesas').insert([{
-                nome, valor, categoria, tipo: 'fixo', data: new Date().toISOString().slice(0,10)
+                user_id: user.id, nome, valor, categoria, tipo: 'fixo',
+                data: new Date().toISOString().slice(0,10)
             }]);
-            if (error) { alert('Erro ao salvar: ' + error.message); return; }
+            if (error) { alert('Erro: ' + error.message); return; }
 
             document.getElementById('fixoNome').value = '';
             document.getElementById('fixoValor').value = '';
@@ -301,12 +298,13 @@
             const data = document.getElementById('varData').value || new Date().toISOString().slice(0,10);
             const categoria = document.getElementById('varCategoria').value;
             const tipo = document.getElementById('varTipo').value;
-            if (!nome || isNaN(valor)) return;
+            if (!nome || isNaN(valor)) { alert('Preencha nome e valor.'); return; }
 
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase.from('despesas').insert([{
-                nome, valor, data, categoria, tipo
+                user_id: user.id, nome, valor, data, categoria, tipo
             }]);
-            if (error) { alert('Erro ao salvar: ' + error.message); return; }
+            if (error) { alert('Erro: ' + error.message); return; }
 
             document.getElementById('varNome').value = '';
             document.getElementById('varValor').value = '';
@@ -316,7 +314,7 @@
         async function removerItem(id) {
             if (!confirm('Remover este gasto?')) return;
             const { error } = await supabase.from('despesas').delete().eq('id', id);
-            if (error) { alert('Erro ao remover: ' + error.message); return; }
+            if (error) { alert('Erro: ' + error.message); return; }
             await carregarDados();
         }
 
@@ -327,7 +325,7 @@
         }
 
         /* ============================================================
-           5. RENDERIZAÇÃO (MESMA LÓGICA DE ANTES)
+           NAVEGAÇÃO E RENDER
            ============================================================ */
         function trocarAba(nome, btn) {
             document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
@@ -357,7 +355,6 @@
             const fixos = despesas.filter(d => d.tipo === 'fixo');
             const variaveis = despesas.filter(d => d.tipo !== 'fixo');
 
-            // Listas
             document.getElementById('listaFixos').innerHTML = fixos.map(d => {
                 const c = catPorId(d.categoria);
                 return `<tr><td>${d.nome}</td><td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td><td>${fmt(d.valor)}</td><td><button class="remover" onclick="removerItem(${d.id})">x</button></td></tr>`;
@@ -370,7 +367,6 @@
                 return `<tr><td>${d.nome}</td><td><span class="badge" style="background:${c.cor}22;color:${c.cor}">${c.icone} ${c.nome}</span></td><td>${tag}</td><td>${d.data.split('-').reverse().join('/')}</td><td>${fmt(d.valor)}</td><td><button class="remover" onclick="removerItem(${d.id})">x</button></td></tr>`;
             }).join('');
 
-            // Totais
             const totalFixos = fixos.reduce((s,d) => s + d.valor, 0);
             const totalVars = variaveis.reduce((s,d) => s + d.valor, 0);
             const totalGeral = totalFixos + totalVars;
@@ -384,7 +380,7 @@
         }
 
         /* ============================================================
-           6. GRÁFICOS E ANÁLISE (MANTIDOS DO CÓDIGO ORIGINAL)
+           GRÁFICOS E ANÁLISE
            ============================================================ */
         function dadosDoMes() {
             const hoje = new Date();
@@ -439,14 +435,12 @@
             document.getElementById('diasRestantes').textContent = diasRestantes;
             document.getElementById('limiteDiario').textContent = diasRestantes > 0 ? `Pode gastar ${fmt(Math.max(0, (renda - totalFixos - totalRec - totalEsp) / diasRestantes))}/dia` : 'Último dia do mês';
 
-            // Alerta
             const alerta = document.getElementById('alertaAnalise');
             if (renda <= 0) alerta.innerHTML = `<div class="alerta aviso">⚠️ Cadastre sua renda mensal.</div>`;
             else if (projecaoSaldo < 0) alerta.innerHTML = `<div class="alerta erro">🚨 Alerta: projeção de saldo negativa (${fmt(projecaoSaldo)}). Reduza gastos.</div>`;
             else if (projecaoSaldo < renda * 0.1) alerta.innerHTML = `<div class="alerta aviso">⚠️ Atenção: sobra projetada baixa (${fmt(projecaoSaldo)}).</div>`;
             else alerta.innerHTML = `<div class="alerta ok">✅ No caminho certo! Projeção de sobra: ${fmt(projecaoSaldo)}.</div>`;
 
-            // Tabela de projeção por categoria recorrente
             const linhas = [];
             CATEGORIAS.forEach(c => {
                 const dados = porCategoriaRec[c.id];
@@ -458,7 +452,6 @@
             linhas.sort((a,b) => b.projCat - a.projCat);
             document.getElementById('tabelaProjCategorias').innerHTML = linhas.length ? linhas.map(l => `<tr><td><span class="badge" style="background:${l.cat.cor}22;color:${l.cat.cor}">${l.cat.icone} ${l.cat.nome}</span></td><td>${fmt(l.total)}</td><td>${fmt(l.mediaCat)}/dia</td><td><strong>${fmt(l.projCat)}</strong></td><td style="color:#a855f7">+${fmt(l.restante)}</td></tr>`).join('') : `<tr><td colspan="5" style="color:#64748b">Nenhum gasto recorrente neste mês.</td></tr>`;
 
-            // Gráfico de barras
             const labelsBarras = Array.from({length: diasNoMes}, (_,i) => `${i+1}`);
             const fixoDia = Array(diasNoMes).fill(totalFixos / diasNoMes);
             const ctxB = document.getElementById('graficoBarras').getContext('2d');
@@ -474,7 +467,6 @@
                 options: { plugins: { legend: { labels: { color:'#e2e8f0' } } }, scales: { x: { stacked: true, ticks:{ color:'#94a3b8' }, grid:{ display:false } }, y: { stacked: true, ticks:{ color:'#94a3b8', callback: v => 'R$ '+v }, grid:{ color:'#334155' } } } }
             });
 
-            // Projeção acumulada
             const acumReal = Array(diasNoMes).fill(null);
             const acumProj = Array(diasNoMes).fill(null);
             let accRec = 0, accEsp = 0;
@@ -538,21 +530,15 @@
         }
 
         /* ============================================================
-           7. INICIALIZAÇÃO
+           INICIALIZAÇÃO
            ============================================================ */
         window.addEventListener('DOMContentLoaded', () => {
             popularCategorias();
             document.getElementById('varData').value = new Date().toISOString().slice(0,10);
             document.getElementById('renda').addEventListener('input', salvarRenda);
-            
-            // Verifica sessão ao carregar
             checarSessao();
-
-            // Escuta mudanças de autenticação (ex: retorno do login)
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                    checarSessao();
-                }
+            supabase.auth.onAuthStateChange((event) => {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') checarSessao();
             });
         });
     </script>
